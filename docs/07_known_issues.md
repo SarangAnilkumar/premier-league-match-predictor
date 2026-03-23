@@ -22,10 +22,15 @@
   - external API is skipped when `fixture_lineups` rows already exist for a given `fixture_id` and `--force-refresh` is not set.
 - Current freshness strategy is presence-based only; it does not yet implement a TTL/staleness threshold beyond `--force-refresh`.
 
+## Rate-Limit Payload Handling
+- Fixture lineups ingestion now treats payload-level JSON rate limit errors (`errors.rateLimit` with `response: []`) as fetch failures: no transform/upsert is performed and `ingestion_runs.status=error` is recorded.
+- Payloads that are valid but have legitimate zero lineup rows (no `errors.rateLimit`) are treated as safe zero-row outcomes.
+
 ## Batching / Partial Runs
 
 - `scripts/ingest_lineups.py` supports `--batch-size` for chunked processing of larger fixture id lists.
 - The ingestion continues past failures for individual `fixture_id`s and logs failures while recording error statuses in `ingestion_runs`.
+- For API stability, the CLI now also supports explicit request pacing (`--sleep-seconds-between-requests`, `--sleep-seconds-between-batches`) and a clean stop condition (`--max-failures`).
 
 ## Current Scope
 

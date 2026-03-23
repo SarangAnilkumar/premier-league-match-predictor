@@ -39,6 +39,8 @@ Formation analytics datasets are now implemented as a local-only read model:
   - `data/processed/api_football/formation_usage_full.json`
   - `data/processed/api_football/formation_usage_primary.json` (legacy alias: `formation_usage_summary.json`)
   - `data/processed/api_football/fixture_formations_primary.json` (legacy alias: `fixture_formations.json`)
+  - `data/processed/api_football/formation_matchups.json`
+  - `data/processed/api_football/formation_matchup_summary.json`
 
 Next milestone:
 - wire additional derived datasets needed by the frontend (without touching API limits).
@@ -47,6 +49,8 @@ Next milestone:
 - Add persistent ingestion logs and run metadata tracking.
 - Add unit tests for transformation logic (defensive handling of missing/null nested fields).
 - Extend the DB audit/report script (`scripts/audit_db.py`) to add more targeted invariants as the DB volume grows.
+- Add rate-limit-aware backoff/retry policy at the ingestion layer (beyond payload validation) to reduce error frequency as volumes grow.
+- Next step is to add adaptive pacing (e.g., automatically increase sleep after repeated rateLimit payloads) on top of the fixed CLI throttles.
 
 ## 5. Frontend integration readiness
 - After DB-first loading exists, expose data to the frontend via a backend API (FastAPI is planned later; not part of this phase).

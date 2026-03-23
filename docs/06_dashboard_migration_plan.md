@@ -19,6 +19,9 @@
   - `data/processed/api_football/formation_usage_full.json`
   - `data/processed/api_football/formation_usage_primary.json` (legacy alias: `formation_usage_summary.json`)
   - `data/processed/api_football/fixture_formations_primary.json` (legacy alias: `fixture_formations.json`)
+- New tactical matchup read models:
+  - `data/processed/api_football/formation_matchups.json`
+  - `data/processed/api_football/formation_matchup_summary.json`
 
 ## Next Steps
 - Update the frontend visualization layer to consume these processed JSON artifacts instead of CSV files.

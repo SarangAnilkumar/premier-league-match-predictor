@@ -215,6 +215,33 @@ def upsert_fixture_lineups(
                 }
             )
 
+        # If the payload legitimately contains no lineup rows (e.g. response=[]),
+        # treat this as a safe zero-row outcome and avoid executing an empty insert.
+        if not fixture_lineup_rows:
+            completed_at = _utcnow()
+            _upsert_ingestion_run(
+                session,
+                run_key=run_key,
+                source_name=source_name,
+                endpoint=endpoint,
+                run_type=run_type,
+                league_id=league_id,
+                season=season,
+                status="success",
+                started_at=started_at,
+                completed_at=completed_at,
+                error_message=None,
+                raw_payload_path=raw_payload_path,
+                records_written=players_written,
+                fetched_from_api=1,
+                cache_hit=0,
+            )
+            return {
+                "players_upserted": players_written,
+                "fixture_lineups_upserted": 0,
+                "records_written": players_written,
+            }
+
         stmt = sqlite_insert(FixtureLineup).values(fixture_lineup_rows)
         stmt = stmt.on_conflict_do_update(
             index_elements=["fixture_id", "player_id", "team_id"],

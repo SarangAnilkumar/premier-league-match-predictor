@@ -17,6 +17,8 @@ from pl_ingestion.analytics.formation_aggregator import (  # noqa: E402
     build_formation_usage_primary,
     build_starting_formations,
     build_formation_usage_full,
+    build_formation_matchups,
+    build_formation_matchup_summary,
 )
 from pl_ingestion.database.connection import create_db_engine, make_session_factory, session_scope  # noqa: E402
 from pl_ingestion.database.db_config import DatabaseSettings  # noqa: E402
@@ -54,6 +56,8 @@ def main() -> None:
         formation_usage_primary = build_formation_usage_primary(session)
         starting_formations = build_starting_formations(session)
         formation_usage_full = build_formation_usage_full(session)
+        formation_matchups = build_formation_matchups(session)
+        formation_matchup_summary = build_formation_matchup_summary(session)
 
     out_fixture_formations_primary = Path("data/processed/api_football/fixture_formations_primary.json")
     out_fixture_formations = Path("data/processed/api_football/fixture_formations.json")
@@ -63,6 +67,8 @@ def main() -> None:
 
     out_starting_formations = Path("data/processed/api_football/starting_formations.json")
     out_usage_full = Path("data/processed/api_football/formation_usage_full.json")
+    out_matchups = Path("data/processed/api_football/formation_matchups.json")
+    out_matchup_summary = Path("data/processed/api_football/formation_matchup_summary.json")
 
     # Primary (collapsed) datasets retained for compatibility/legacy visuals.
     _write_json(out_fixture_formations_primary, fixture_formations_primary)
@@ -75,13 +81,17 @@ def main() -> None:
     # New multi-formation datasets (no single-formation collapse).
     _write_json(out_starting_formations, starting_formations)
     _write_json(out_usage_full, formation_usage_full)
+    _write_json(out_matchups, formation_matchups)
+    _write_json(out_matchup_summary, formation_matchup_summary)
 
     logging.getLogger(__name__).info(
-        "Formation analytics built: fixture_formations_primary=%s starting_formations=%s formation_usage_primary=%s formation_usage_full=%s",
+        "Formation analytics built: fixture_formations_primary=%s starting_formations=%s formation_usage_primary=%s formation_usage_full=%s formation_matchups=%s formation_matchup_summary=%s",
         len(fixture_formations_primary),
         len(starting_formations),
         len(formation_usage_primary),
         len(formation_usage_full),
+        len(formation_matchups),
+        len(formation_matchup_summary),
     )
 
 

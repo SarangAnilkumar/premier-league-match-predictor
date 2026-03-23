@@ -360,6 +360,248 @@ def build_formation_usage_full(session: Session) -> list[dict[str, Any]]:
     return output
 
 
+def _team_relative_result_label(goals_for: Optional[int], goals_against: Optional[int]) -> Optional[str]:
+    if goals_for is None or goals_against is None:
+        return None
+    wins, draws, losses = _compute_result_from_goals(goals_for, goals_against)
+    if wins == 1:
+        return "win"
+    if draws == 1:
+        return "draw"
+    if losses == 1:
+        return "loss"
+    return None
+
+
+def build_formation_matchups(
+    session: Session,
+    *,
+    starting_lineup_types: tuple[str, ...] = ("starting", "starting_xi"),
+) -> list[dict[str, Any]]:
+    """
+    Build formation matchups using starting-XI only.
+
+    Each row represents one team's tactical matchup in a fixture:
+    - team_formation: selected starting formation for `team_id` in the fixture
+    - opponent_formation: selected starting formation for the opponent in the fixture
+
+    Selection:
+    - choose a single deterministic formation per (fixture_id, team_id) by "mode"
+      using row counts from fixture_lineups (one row per player -> count is stable).
+    - if either home/away side lacks starting formation coverage for the fixture,
+      the fixture is skipped (no invented rows).
+    """
+    # Count starting formations per (fixture_id, team_id, formation).
+    starting_counts_stmt = (
+        select(
+            FixtureLineup.fixture_id,
+            FixtureLineup.team_id,
+            FixtureLineup.formation,
+            func.count().label("row_count"),
+        )
+        .where(FixtureLineup.team_id.is_not(None))
+        .where(FixtureLineup.formation.is_not(None))
+        .where(FixtureLineup.lineup_type.is_not(None))
+        .where(FixtureLineup.lineup_type.in_(list(starting_lineup_types)))
+        .group_by(FixtureLineup.fixture_id, FixtureLineup.team_id, FixtureLineup.formation)
+    )
+    starting_counts = session.execute(starting_counts_stmt).all()
+
+    if not starting_counts:
+        return []
+
+    # Deterministically choose ONE formation per (fixture_id, team_id).
+    best_formation: dict[tuple[int, int], Optional[str]] = {}
+    best_count: dict[tuple[int, int], int] = {}
+    for fixture_id, team_id, formation, row_count in starting_counts:
+        key = (int(fixture_id), int(team_id))
+        formation_str = str(formation) if formation is not None else None
+        row_count_int = int(row_count)
+
+        if key not in best_count:
+            best_count[key] = row_count_int
+            best_formation[key] = formation_str
+            continue
+
+        if row_count_int > best_count[key]:
+            best_count[key] = row_count_int
+            best_formation[key] = formation_str
+            continue
+
+        if row_count_int == best_count[key]:
+            # Deterministic tie-break by lexicographic formation string.
+            current = best_formation[key]
+            curr_sort = "" if current is None else str(current)
+            new_sort = "" if formation_str is None else str(formation_str)
+            if new_sort < curr_sort:
+                best_formation[key] = formation_str
+
+    fixture_ids = sorted({k[0] for k in best_formation.keys()})
+
+    fixtures_stmt = select(
+        Fixture.fixture_id,
+        Fixture.season,
+        Fixture.round,
+        Fixture.date_utc,
+        Fixture.home_team_id,
+        Fixture.away_team_id,
+        Fixture.home_goals,
+        Fixture.away_goals,
+        Fixture.match_result,
+    ).where(Fixture.fixture_id.in_(fixture_ids))
+
+    fixture_rows = session.execute(fixtures_stmt).all()
+    fixture_by_id = {int(r.fixture_id): r for r in fixture_rows}
+
+    # Only output fixtures where BOTH sides have selected starting formations.
+    qualifying_fixture_ids: list[int] = []
+    team_ids: set[int] = set()
+    for fid in fixture_ids:
+        fx = fixture_by_id.get(fid)
+        if fx is None:
+            continue
+        if fx.home_team_id is None or fx.away_team_id is None:
+            continue
+        home_id = int(fx.home_team_id)
+        away_id = int(fx.away_team_id)
+        if (fid, home_id) not in best_formation or (fid, away_id) not in best_formation:
+            continue
+        qualifying_fixture_ids.append(fid)
+        team_ids.add(home_id)
+        team_ids.add(away_id)
+
+    if not qualifying_fixture_ids:
+        return []
+
+    team_stmt = select(Team.id, Team.name).where(Team.id.in_(sorted(team_ids)))
+    team_rows = session.execute(team_stmt).all()
+    team_name_by_id = {int(tid): name for tid, name in team_rows}
+
+    output: list[dict[str, Any]] = []
+    for fid in sorted(qualifying_fixture_ids, key=lambda x: (str(fixture_by_id[x].date_utc or ""), x)):
+        fx = fixture_by_id.get(fid)
+        if fx is None:
+            continue
+
+        if fx.home_goals is None or fx.away_goals is None:
+            # Match result relative to goals requires both sides to have goals.
+            continue
+
+        home_id = int(fx.home_team_id)
+        away_id = int(fx.away_team_id)
+
+        home_formation = best_formation[(fid, home_id)]
+        away_formation = best_formation[(fid, away_id)]
+        if home_formation is None or away_formation is None:
+            continue
+
+        # Home team row.
+        home_match_result = _team_relative_result_label(fx.home_goals, fx.away_goals)
+        if home_match_result is not None:
+            output.append(
+                {
+                    "fixture_id": fid,
+                    "season": fx.season,
+                    "round": fx.round,
+                    "date_utc": _datetime_to_utc_iso(fx.date_utc),
+                    "team_id": home_id,
+                    "team_name": team_name_by_id.get(home_id),
+                    "team_formation": home_formation,
+                    "opponent_team_id": away_id,
+                    "opponent_team_name": team_name_by_id.get(away_id),
+                    "opponent_formation": away_formation,
+                    "match_result": home_match_result,  # win/draw/loss (team-relative)
+                    "goals_for": fx.home_goals,
+                    "goals_against": fx.away_goals,
+                    # Debugging: fixture-level result (home_win/away_win/draw).
+                    "fixture_match_result": fx.match_result,
+                }
+            )
+
+        # Away team row.
+        away_match_result = _team_relative_result_label(fx.away_goals, fx.home_goals)
+        if away_match_result is not None:
+            output.append(
+                {
+                    "fixture_id": fid,
+                    "season": fx.season,
+                    "round": fx.round,
+                    "date_utc": _datetime_to_utc_iso(fx.date_utc),
+                    "team_id": away_id,
+                    "team_name": team_name_by_id.get(away_id),
+                    "team_formation": away_formation,
+                    "opponent_team_id": home_id,
+                    "opponent_team_name": team_name_by_id.get(home_id),
+                    "opponent_formation": home_formation,
+                    "match_result": away_match_result,  # win/draw/loss (team-relative)
+                    "goals_for": fx.away_goals,
+                    "goals_against": fx.home_goals,
+                    "fixture_match_result": fx.match_result,
+                }
+            )
+
+    # Deterministic final sorting.
+    output.sort(key=lambda r: (str(r.get("date_utc") or ""), int(r["fixture_id"]), int(r["team_id"])))
+    return output
+
+
+def build_formation_matchup_summary(session: Session) -> list[dict[str, Any]]:
+    """
+    Summarize formation matchups by (team_formation, opponent_formation).
+    """
+    matchups = build_formation_matchups(session)
+    if not matchups:
+        return []
+
+    agg: dict[tuple[str, str], dict[str, Any]] = {}
+    for row in matchups:
+        key = (str(row["team_formation"]), str(row["opponent_formation"]))
+        if key not in agg:
+            agg[key] = {
+                "team_formation": row["team_formation"],
+                "opponent_formation": row["opponent_formation"],
+                "matches": 0,
+                "wins": 0,
+                "draws": 0,
+                "losses": 0,
+                "goals_for": 0,
+                "goals_against": 0,
+            }
+
+        agg_row = agg[key]
+        agg_row["matches"] += 1
+
+        mr = row.get("match_result")
+        if mr == "win":
+            agg_row["wins"] += 1
+        elif mr == "draw":
+            agg_row["draws"] += 1
+        elif mr == "loss":
+            agg_row["losses"] += 1
+
+        gf = row.get("goals_for")
+        ga = row.get("goals_against")
+        if isinstance(gf, int):
+            agg_row["goals_for"] += gf
+        if isinstance(ga, int):
+            agg_row["goals_against"] += ga
+
+    output: list[dict[str, Any]] = []
+    for key in sorted(agg.keys(), key=lambda k: (k[0], k[1])):
+        row = agg[key]
+        matches = int(row["matches"])
+        wins = int(row["wins"])
+        goals_for = int(row["goals_for"])
+        goals_against = int(row["goals_against"])
+
+        row["win_rate"] = round((wins / matches) * 100, 6) if matches > 0 else 0.0
+        row["average_goals_for"] = round(goals_for / matches, 6) if matches > 0 else 0.0
+        row["average_goals_against"] = round(goals_against / matches, 6) if matches > 0 else 0.0
+        output.append(row)
+
+    return output
+
+
 def build_formation_usage_primary(session: Session) -> list[dict[str, Any]]:
     """
     Primary (backward compatible) formation usage.

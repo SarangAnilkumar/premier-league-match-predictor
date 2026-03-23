@@ -42,10 +42,18 @@
 - The lineups ingestion CLI (`scripts/ingest_lineups.py`) ingests a controlled subset of `fixture_id`s.
 - The CLI supports batching via `--batch-size` to process large fixture lists in safe chunks with clearer progress reporting.
 - The ingestor emits aggregate run counters (total requested, cache hits/skips, API fetches, successful writes, and any failed/skipped `fixture_id`s).
+- For operational safety, the CLI supports pacing and early-stop:
+  - `--sleep-seconds-between-requests` (after each API-backed fixture request)
+  - `--sleep-seconds-between-batches` (after each batch completes)
+  - `--max-failures` (stop cleanly after N `fixture_id`s fail with `ingestion_runs.status=error`)
+- The CLI can target fixtures either via `--fixture-ids` or via DB selection helpers:
+  - `--season` + (`--first-n` or `--round` or `--team-id`/`--team-name`)
 - For each fixture, the pipeline checks SQLite for existing `fixture_lineups` rows:
   - if present and `--force-refresh` is not set, it records `ingestion_runs.status=cache_hit` and skips the API call
   - otherwise, it fetches lineups from API-Football, saves raw lineup JSON, transforms it, and upserts `players` + `fixture_lineups`
 - In API-backed runs, `ingestion_runs.fetched_from_api` is set to `1` and `cache_hit` to `0`.
+- API payload-level rate limit responses (JSON containing `errors.rateLimit`) are treated as fetch failures: the payload is saved for debugging, no transform/upsert happens, and `ingestion_runs.status=error` is recorded.
+- If the payload is valid but contains no lineup rows (e.g., `response: []` with no `errors.rateLimit`), the ingestion is treated as a safe zero-row outcome (no DB crash; `ingestion_runs.status=success` with `records_written=0`).
 
 ## DB audit/report layer (Implemented)
 - A read-only audit script (`scripts/audit_db.py`) prints a deterministic health summary from SQLite before/while you ingest larger fixture/lineup batches.
@@ -66,4 +74,6 @@
   - `formation_usage_summary.json` (alias of the primary dataset)
 - `fixture_formations_primary.json` and legacy alias:
   - `fixture_formations.json` (alias of the primary fixture formation dataset)
+- `formation_matchups.json` (starting-XI formation matchups per team per fixture)
+- `formation_matchup_summary.json` (aggregated summary by (team_formation, opponent_formation))
 

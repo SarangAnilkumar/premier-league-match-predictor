@@ -12,6 +12,27 @@ from urllib3.util.retry import Retry
 logger = logging.getLogger(__name__)
 
 
+class APIFootballRateLimitError(RuntimeError):
+    """
+    Raised when the API returns a payload-level rate limit error (HTTP may still be 2xx).
+    Carries the raw JSON payload for debugging.
+    """
+
+    def __init__(self, *, message: str, payload: Dict[str, Any]) -> None:
+        super().__init__(message)
+        self.payload = payload
+
+
+def _extract_rate_limit_error(payload: Dict[str, Any]) -> Optional[str]:
+    errors = payload.get("errors")
+    if not isinstance(errors, dict):
+        return None
+    rate_limit = errors.get("rateLimit")
+    if rate_limit:
+        return str(rate_limit)
+    return None
+
+
 @dataclass(frozen=True)
 class FixturesQuery:
     league_id: int
@@ -115,5 +136,13 @@ class APIFootballClient:
         resp = self.session.get(url, params=params, timeout=self.timeout_seconds)
         resp.raise_for_status()
         data: Dict[str, Any] = resp.json()
+
+        rate_limit_message = _extract_rate_limit_error(data)
+        if rate_limit_message:
+            raise APIFootballRateLimitError(
+                message=rate_limit_message,
+                payload=data,
+            )
+
         return data
 

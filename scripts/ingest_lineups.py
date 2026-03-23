@@ -44,6 +44,12 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Write compact JSON (for smaller raw payloads).",
     )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=5,
+        help="Process fixture IDs in chunks of this size (for progress + safety).",
+    )
     return parser.parse_args()
 
 
@@ -84,15 +90,18 @@ def main() -> None:
     results = ingestor.ingest(
         fixture_ids=fixture_ids,
         force_refresh=args.force_refresh,
+        batch_size=args.batch_size,
         pretty_json=not args.no_pretty,
     )
 
     used_cache_count = sum(1 for r in results if r.used_cache)
+    error_count = sum(1 for r in results if r.status == "error")
     logging.getLogger(__name__).info(
-        "Lineups ingestion complete: total=%s used_cache=%s fetched=%s",
+        "Lineups ingestion complete: total=%s used_cache=%s fetched=%s errors=%s",
         len(results),
         used_cache_count,
-        len(results) - used_cache_count,
+        len(results) - used_cache_count - error_count,
+        error_count,
     )
 
 

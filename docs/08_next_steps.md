@@ -12,6 +12,7 @@ Next milestone:
 ## 1. Extend ingestion beyond fixtures
 Current progress:
 - Fixture lineups ingestion is implemented for a controlled subset of `fixture_id`s (`scripts/ingest_lineups.py`), including formation + lineup_type and upserting players referenced in lineups.
+- The CLI supports batching of fixture IDs via `--batch-size` to reduce operational risk with tight API limits.
 
 Planned additions (engineering steps, not implemented yet):
 - Enrich match data with additional attributes needed for analytics/ML.

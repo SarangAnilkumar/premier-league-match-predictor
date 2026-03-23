@@ -40,6 +40,8 @@
 
 ## Wired (fixture lineups ingestion)
 - The lineups ingestion CLI (`scripts/ingest_lineups.py`) ingests a controlled subset of `fixture_id`s.
+- The CLI supports batching via `--batch-size` to process large fixture lists in safe chunks with clearer progress reporting.
+- The ingestor emits aggregate run counters (total requested, cache hits/skips, API fetches, successful writes, and any failed/skipped `fixture_id`s).
 - For each fixture, the pipeline checks SQLite for existing `fixture_lineups` rows:
   - if present and `--force-refresh` is not set, it records `ingestion_runs.status=cache_hit` and skips the API call
   - otherwise, it fetches lineups from API-Football, saves raw lineup JSON, transforms it, and upserts `players` + `fixture_lineups`

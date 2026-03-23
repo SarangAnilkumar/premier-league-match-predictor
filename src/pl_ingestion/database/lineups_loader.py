@@ -316,3 +316,41 @@ def record_fixture_lineups_cache_hit_run(
         cache_hit=1,
     )
 
+
+def record_fixture_lineups_error_run(
+    session: Session,
+    *,
+    run_key: str,
+    source_name: str,
+    endpoint: str,
+    run_type: str,
+    fixture_id: int,
+    season: Optional[str],
+    league_id: Optional[int],
+    raw_payload_path: Optional[Path],
+    error_message: str,
+) -> None:
+    """
+    Record an ingestion run error for fixture lineups when the API fetch or load fails.
+    """
+    started_at = _utcnow()
+    completed_at = _utcnow()
+
+    _upsert_ingestion_run(
+        session,
+        run_key=run_key,
+        source_name=source_name,
+        endpoint=endpoint,
+        run_type=run_type,
+        league_id=league_id,
+        season=season,
+        status="error",
+        started_at=started_at,
+        completed_at=completed_at,
+        error_message=error_message,
+        raw_payload_path=raw_payload_path,
+        records_written=None,
+        fetched_from_api=1,
+        cache_hit=0,
+    )
+

@@ -19,6 +19,10 @@
   - external API is skipped when `fixture_lineups` rows already exist for a given `fixture_id` and `--force-refresh` is not set.
 - Current freshness strategy is presence-based only; it does not yet implement a TTL/staleness threshold beyond `--force-refresh`.
 
+## Batching / Partial Runs
+- `scripts/ingest_lineups.py` supports `--batch-size` for chunked processing of larger fixture id lists.
+- The ingestion continues past failures for individual `fixture_id`s and logs failures while recording error statuses in `ingestion_runs`.
+
 ## Current Scope
 - Fixtures ingestion is implemented end-to-end (raw save + cleaned transform + DB upsert for teams/fixtures + ingestion tracking).
 - Fixture lineups ingestion is implemented for a controlled subset of `fixture_id`s via `scripts/ingest_lineups.py` (raw save + transform + DB upsert for players/fixture_lineups + ingestion tracking), with cache-first behavior.

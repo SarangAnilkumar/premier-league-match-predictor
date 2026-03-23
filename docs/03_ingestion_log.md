@@ -45,3 +45,19 @@
   - otherwise, it fetches lineups from API-Football, saves raw lineup JSON, transforms it, and upserts `players` + `fixture_lineups`
 - In API-backed runs, `ingestion_runs.fetched_from_api` is set to `1` and `cache_hit` to `0`.
 
+## Analytics dataset build (Implemented for formations)
+- A local-only analytics step exists to build formation-based datasets from SQLite:
+  - `scripts/build_formation_analytics.py`
+- This step:
+  - uses only the existing database tables (`fixtures`, `fixture_lineups`, `teams`)
+  - does not call the external API
+  - writes deterministic JSON artifacts to `data/processed/api_football/`.
+
+### Formation datasets produced
+- `starting_formations.json` (starting XI only; one row per fixture/team)
+- `formation_usage_full.json` (aggregated over all distinct formations observed in `fixture_lineups`)
+- `formation_usage_primary.json` and legacy aliases:
+  - `formation_usage_summary.json` (alias of the primary dataset)
+- `fixture_formations_primary.json` and legacy alias:
+  - `fixture_formations.json` (alias of the primary fixture formation dataset)
+

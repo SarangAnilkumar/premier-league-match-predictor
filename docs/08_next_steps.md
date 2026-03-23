@@ -30,6 +30,18 @@ Fixtures DB loading is implemented (upsert into `teams` and `fixtures`, plus `in
 Next milestone is to add DB loaders for additional datasets as ingestion expands:
 - transfers
 
+## Tactical Analytics Read Models
+Formation analytics datasets are now implemented as a local-only read model:
+- `scripts/build_formation_analytics.py`
+- outputs:
+  - `data/processed/api_football/starting_formations.json`
+  - `data/processed/api_football/formation_usage_full.json`
+  - `data/processed/api_football/formation_usage_primary.json` (legacy alias: `formation_usage_summary.json`)
+  - `data/processed/api_football/fixture_formations_primary.json` (legacy alias: `fixture_formations.json`)
+
+Next milestone:
+- wire additional derived datasets needed by the frontend (without touching API limits).
+
 ## 4. Operational hardening
 - Add persistent ingestion logs and run metadata tracking.
 - Add unit tests for transformation logic (defensive handling of missing/null nested fields).

@@ -74,3 +74,12 @@
   - `ingestion_runs` (loader status + metadata)
 - Cache-first API gating is implemented for fixtures and fixture lineups using a presence-based strategy (and `--force-refresh` to override).
 
+## Analytics Read Model (Formations)
+- Formation analytics datasets are derived from:
+  - `fixtures` (match metadata + goals)
+  - `fixture_lineups` (formation + lineup coverage)
+  - `teams` (team names)
+- Current artifacts are built by `scripts/build_formation_analytics.py` and saved to:
+  - `data/processed/api_football/formation_usage_summary.json`
+  - `data/processed/api_football/fixture_formations.json`
+

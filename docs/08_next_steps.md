@@ -46,6 +46,7 @@ Next milestone:
 ## 4. Operational hardening
 - Add persistent ingestion logs and run metadata tracking.
 - Add unit tests for transformation logic (defensive handling of missing/null nested fields).
+- Extend the DB audit/report script (`scripts/audit_db.py`) to add more targeted invariants as the DB volume grows.
 
 ## 5. Frontend integration readiness
 - After DB-first loading exists, expose data to the frontend via a backend API (FastAPI is planned later; not part of this phase).

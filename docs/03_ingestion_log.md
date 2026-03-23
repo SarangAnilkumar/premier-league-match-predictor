@@ -47,6 +47,10 @@
   - otherwise, it fetches lineups from API-Football, saves raw lineup JSON, transforms it, and upserts `players` + `fixture_lineups`
 - In API-backed runs, `ingestion_runs.fetched_from_api` is set to `1` and `cache_hit` to `0`.
 
+## DB audit/report layer (Implemented)
+- A read-only audit script (`scripts/audit_db.py`) prints a deterministic health summary from SQLite before/while you ingest larger fixture/lineup batches.
+- The report includes: core table counts, lineup coverage, formation/player completeness metrics, and ingestion-run status/endpoint/run_type summaries.
+
 ## Analytics dataset build (Implemented for formations)
 - A local-only analytics step exists to build formation-based datasets from SQLite:
   - `scripts/build_formation_analytics.py`

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Formation Matchup Heatmap</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="header">
+        <div class="titleBlock">
+          <h1>Formation Matchup Heatmap</h1>
+          <p class="subtitle">
+            Win rate by <code>team_formation</code> (columns) vs <code>opponent_formation</code> (rows).
+          </p>
+        </div>
+      </header>
+
+      <section class="chartSection">
+        <div class="controls">
+          <div class="control">
+            <label for="sortMode">Sort</label>
+            <select id="sortMode">
+              <option value="name" selected>Formation name</option>
+              <option value="matches">Total matches</option>
+              <option value="winrate">Avg win rate</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="minMatches">Min matches</label>
+            <input id="minMatches" type="number" min="0" step="1" value="0" />
+          </div>
+
+          <div class="control">
+            <label for="teamFormationsSelect">Team formations</label>
+            <select id="teamFormationsSelect" class="multiSelect" multiple size="6"></select>
+            <button type="button" id="clearTeamFormations">Clear</button>
+          </div>
+          <div class="hint">
+            Leave empty to show all
+          </div>
+
+          <div class="control">
+            <label for="opponentFormationsSelect">Opponent formations</label>
+            <select id="opponentFormationsSelect" class="multiSelect" multiple size="6"></select>
+            <button type="button" id="clearOpponentFormations">Clear</button>
+          </div>
+          <div class="hint">
+            Leave empty to show all
+          </div>
+
+          <div class="control checkboxControl">
+            <label class="checkboxLabel">
+              <input id="showWinRateText" type="checkbox" />
+              Show win rate text in cells
+            </label>
+          </div>
+        </div>
+
+        <div id="chart" class="chart"></div>
+      </section>
+
+      <footer class="footer">
+        <p>
+          Data source:
+          <code>data/processed/api_football/formation_matchup_summary.json</code>
+        </p>
+      </footer>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+    <script src="./heatmap.js"></script>
+  </body>
+</html>
+

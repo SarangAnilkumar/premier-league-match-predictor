@@ -58,6 +58,14 @@ class FixtureLineupsQuery:
         return params
 
 
+@dataclass(frozen=True)
+class TransfersQuery:
+    team_id: int
+
+    def to_params(self) -> Dict[str, str | int]:
+        return {"team": self.team_id}
+
+
 class APIFootballClient:
     """
     Minimal API-Football HTTP client (requests-based), with retries and
@@ -132,6 +140,28 @@ class APIFootballClient:
         url = f"{self.base_url}/fixtures/lineups"
         params = query.to_params()
         logger.info("Fetching fixture lineups url=%s params=%s", url, params)
+
+        resp = self.session.get(url, params=params, timeout=self.timeout_seconds)
+        resp.raise_for_status()
+        data: Dict[str, Any] = resp.json()
+
+        rate_limit_message = _extract_rate_limit_error(data)
+        if rate_limit_message:
+            raise APIFootballRateLimitError(
+                message=rate_limit_message,
+                payload=data,
+            )
+
+        return data
+
+    def get_transfers(self, query: TransfersQuery) -> Dict[str, Any]:
+        """
+        Fetch player transfers for a team.
+        Endpoint: GET /transfers
+        """
+        url = f"{self.base_url}/transfers"
+        params = query.to_params()
+        logger.info("Fetching transfers url=%s params=%s", url, params)
 
         resp = self.session.get(url, params=params, timeout=self.timeout_seconds)
         resp.raise_for_status()

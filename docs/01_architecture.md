@@ -33,6 +33,7 @@ Fixture lineups ingestion is also cache-first: before calling the external API f
     - API key (from env; not hardcoded)
 - `src/pl_ingestion/api_football_client.py`
   - `APIFootballClient.get_fixtures(...)` (GET `/fixtures`)
+  - `APIFootballClient.get_transfers(...)` (GET `/transfers` with `team=<team_id>`)
   - Adds authentication header `x-apisports-key`
   - Configures retries for transient HTTP failures
 - `src/pl_ingestion/ingestion/fixtures_ingestor.py`
@@ -59,10 +60,14 @@ Fixture lineups ingestion is also cache-first: before calling the external API f
   - Upserts `teams`, `fixtures`, and updates `ingestion_runs`
 - `src/pl_ingestion/database/lineups_loader.py`
   - Upserts `players`, `fixture_lineups`, and updates `ingestion_runs`
+- `src/pl_ingestion/database/transfers_loader.py`
+  - Upserts referenced `teams`/`players`, writes `transfers`, and updates `ingestion_runs`
 - `scripts/ingest_fixtures.py`
   - CLI runner supports `--force-refresh` to override cached data
 - `scripts/ingest_lineups.py`
   - CLI runner supports `--fixture-ids` and `--force-refresh` to ingest lineups for a controlled subset
+- `scripts/ingest_transfers.py`
+  - CLI runner for transfers ingestion (or reprocessing from raw with `--raw-path`)
 - `scripts/init_db.py`
   - Creates the DB tables locally
 

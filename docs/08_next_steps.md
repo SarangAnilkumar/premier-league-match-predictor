@@ -14,11 +14,16 @@ Current progress:
 - Fixture lineups ingestion is implemented for a controlled subset of `fixture_id`s (`scripts/ingest_lineups.py`), including formation + lineup_type and upserting players referenced in lineups.
 - The CLI supports batching of fixture IDs via `--batch-size` to reduce operational risk with tight API limits.
 
+Implemented additions:
+- Transfers ingestion is implemented via `scripts/ingest_transfers.py` (GET `/transfers?team=<team_id>` for all teams found in `fixtures` for the requested season).
+  - Important: transfers can reference non-Premier-League clubs, so the loader upserts referenced `teams`/`players` before inserting into `transfers` to satisfy FK constraints.
+  - For request-efficiency, `scripts/ingest_transfers.py` also supports loading from an already-saved raw JSON file via `--raw-path` (no API calls).
+
 Planned additions (engineering steps, not implemented yet):
 - Enrich match data with additional attributes needed for analytics/ML.
 - Add ingestion modules for:
   - teams/standings
-  - transfers
+  - (more) transfers enrichment (fees/currencies, better date parsing, league scoping)
 
 ## 2. Request-efficiency improvements
 To respect API request/day constraints:
@@ -28,8 +33,8 @@ To respect API request/day constraints:
 ## 3. Extend DB loaders
 Fixtures DB loading is implemented (upsert into `teams` and `fixtures`, plus `ingestion_runs` tracking).
 
-Next milestone is to add DB loaders for additional datasets as ingestion expands:
-- transfers
+DB loaders implemented:
+- `transfers` loader exists and is wired by `scripts/ingest_transfers.py`.
 
 ## Tactical Analytics Read Models
 Formation analytics datasets are now implemented as a local-only read model:

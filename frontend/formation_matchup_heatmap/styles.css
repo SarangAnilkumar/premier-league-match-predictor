@@ -1,0 +1,203 @@
+:root {
+  --bg: #ffffff;
+  --text: #111827;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji",
+    "Segoe UI Emoji";
+}
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 18px 20px 24px;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.titleBlock h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  color: #374151;
+  font-size: 13px;
+}
+
+.subtitle code {
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.chartSection {
+  padding-top: 14px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  align-items: center;
+  padding: 10px 0 14px;
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #111827;
+  font-size: 13px;
+}
+
+.control label {
+  color: #374151;
+  font-weight: 600;
+}
+
+.control select,
+.control input[type="number"] {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  background: #ffffff;
+  color: #111827;
+}
+
+.control button {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  background: #ffffff;
+  color: #111827;
+  cursor: pointer;
+}
+
+.hint {
+  width: 100%;
+  margin-top: -6px;
+  margin-bottom: 4px;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkboxLabel input {
+  width: 16px;
+  height: 16px;
+}
+
+.chart {
+  overflow: auto;
+}
+
+.footer {
+  padding-top: 10px;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.footer code {
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  pointer-events: none;
+  max-width: 320px;
+}
+
+.ttTitle {
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.ttRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  color: #111827;
+}
+
+.ttKey {
+  color: #6b7280;
+}
+
+.ttDivider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 8px 0;
+}
+
+.error {
+  padding: 12px;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.cellWinRateText {
+  font-weight: 800;
+  fill: rgba(17, 24, 39, 0.9);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.lowSample {
+  font-weight: 800;
+  color: #b91c1c;
+}
+
+.multiSelect {
+  min-width: 220px;
+  height: 44px;
+}
+
+.activeTick {
+  font-weight: 900;
+  fill: #111827 !important;
+}
+
+.activeAxisTitle {
+  font-weight: 900;
+}
+
+.cell {
+  transition: opacity 150ms ease, stroke-width 150ms ease;
+}
+
+.cellHighlighted {
+  stroke: rgba(17, 24, 39, 0.95);
+  stroke-width: 2;
+}
+

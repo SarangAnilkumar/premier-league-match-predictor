@@ -23,6 +23,9 @@
   - `data/processed/api_football/formation_matchups.json`
   - `data/processed/api_football/formation_matchup_summary.json`
 
+## Implemented Frontend Chart (First)
+- First migrated visualization is an interactive D3.js formation matchup heatmap built from `data/processed/api_football/formation_matchup_summary.json` (win rate by formation pair).
+
 ## Next Steps
 - Update the frontend visualization layer to consume these processed JSON artifacts instead of CSV files.
 - Extend the read model approach to additional tactical datasets (as lineups/players/transfers ingestion grows).

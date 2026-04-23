@@ -54,6 +54,8 @@
   - Foreign keys:
     - `player_id` -> `players.id` (nullable until players/transfers ingestion is added)
     - `from_team_id`/`to_team_id` -> `teams.id`
+  - Notes:
+    - Transfers can reference clubs outside the Premier League; to satisfy FK constraints, ingestion must upsert referenced `teams`/`players` before inserting transfer rows.
 
 ### Ingestion tracking
 - `ingestion_runs`
@@ -73,6 +75,10 @@
   - `fixtures` (derived from cleaned fixtures)
   - `ingestion_runs` (loader status + metadata)
 - Cache-first API gating is implemented for fixtures and fixture lineups using a presence-based strategy (and `--force-refresh` to override).
+- Transfers ingestion is implemented via `scripts/ingest_transfers.py`:
+  - Raw saved to `data/raw/api_football/transfers_league_<league_id>_season_<season>.json`
+  - Loads into the `transfers` table and records an `ingestion_runs` entry
+  - Supports reprocessing from an existing raw JSON file via `--raw-path` (no API calls)
 
 ## Analytics Read Model (Formations)
 - Formation analytics datasets are derived from:

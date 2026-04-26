@@ -1,17 +1,16 @@
 # Dashboard Migration Plan (DB-First)
 
 ## Current Situation
-- The legacy dashboard (`SarangAnilkumar_34662774_Code.html`) was originally built around static CSV datasets.
 - The ingestion system has moved to:
   - API-Football → raw JSON → cleaned JSON → SQLite upserts
   - cache-first ingestion behavior to reduce external API calls
 
 ## Migration Strategy
-1. Replace CSV-driven visualizations with DB-derived “read model” JSON.
+1. Replace ad-hoc/static visual data inputs with DB-derived “read model” outputs.
 2. Build derived datasets in repeatable scripts that:
    - use only the local SQLite database (no external API calls)
    - produce deterministic, sorted JSON outputs
-3. Point frontend visualization code at the processed JSON artifacts produced by these scripts.
+3. Point analytics/dashboard layers at the processed artifacts produced by these scripts.
 
 ## Implemented Read Models (First)
 - Formation-based analytics datasets are now generated from the database:
@@ -23,10 +22,7 @@
   - `data/processed/api_football/formation_matchups.json`
   - `data/processed/api_football/formation_matchup_summary.json`
 
-## Implemented Frontend Chart (First)
-- First migrated visualization is an interactive D3.js formation matchup heatmap built from `data/processed/api_football/formation_matchup_summary.json` (win rate by formation pair).
-
 ## Next Steps
-- Update the frontend visualization layer to consume these processed JSON artifacts instead of CSV files.
+- Ensure downstream dashboards consume processed DB-derived artifacts as their single source of truth.
 - Extend the read model approach to additional tactical datasets (as lineups/players/transfers ingestion grows).
 

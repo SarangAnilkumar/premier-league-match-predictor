@@ -53,6 +53,31 @@ def _parse_fee_amount(value: Any) -> Optional[int]:
     return int(number)
 
 
+def _normalize_transfer_type_and_fee(raw_type: Any) -> tuple[Optional[str], Optional[int]]:
+    """
+    API-Football's `type` field is overloaded:
+    - semantic transfer labels: "Loan", "Free", "Return from loan", etc.
+    - fee-like strings: "€ 16.5M", "250K", ...
+
+    Normalize into:
+    - in_out: categorical transfer label for analytics
+    - fee_amount: integer numeric fee when present
+    """
+    if not isinstance(raw_type, str):
+        return None, None
+
+    value = raw_type.strip()
+    if not value:
+        return None, None
+
+    parsed_fee = _parse_fee_amount(value)
+    if parsed_fee is not None:
+        # Keep transfer label categorical; avoid fee strings polluting `in_out`.
+        return "Transfer", parsed_fee
+
+    return value, None
+
+
 def _infer_transfer_period(date_value: Optional[str]) -> Optional[str]:
     if not date_value:
         return None
@@ -106,19 +131,21 @@ def transform_transfers(raw_response: dict) -> list[dict[str, Any]]:
 
             transfer_type = t.get("type")
             transfer_date = t.get("date")
+            normalized_type, fee_amount = _normalize_transfer_type_and_fee(transfer_type)
 
             rows.append(
                 {
                     "season": _infer_season(transfer_date),
                     "transfer_period": _infer_transfer_period(transfer_date),
+                    "transfer_date": transfer_date,
                     "player_id": player_id,
                     "player_name": player_name,
                     "from_team_id": _safe_int(team_out.get("id")),
                     "from_team_name": team_out.get("name"),
                     "to_team_id": _safe_int(team_in.get("id")),
                     "to_team_name": team_in.get("name"),
-                    "in_out": transfer_type if isinstance(transfer_type, str) else None,
-                    "fee_amount": _parse_fee_amount(t.get("fee")),
+                    "in_out": normalized_type,
+                    "fee_amount": fee_amount,
                 }
             )
 

@@ -225,6 +225,7 @@ class Transfer(Base):
 
     season: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
     transfer_period: Mapped[Optional[str]] = mapped_column(String(16), nullable=True)  # e.g. "Summer", "Winter"
+    transfer_date: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)  # ISO date string (YYYY-MM-DD)
 
     player_id: Mapped[Optional[int]] = mapped_column(ForeignKey("players.id"), nullable=True)
 

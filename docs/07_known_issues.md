@@ -1,10 +1,5 @@
 # Known Issues / Constraints
 
-## Legacy Dashboard Dependencies
-
-- The existing HTML dashboard (`SarangAnilkumar_34662774_Code.html`) was built around CSV-derived data.
-- The migration is ongoing; the dashboard still reflects the earlier CSV workflow.
-
 ## API Limitations for Formations
 
 - The current fixtures ingestion uses `GET /fixtures` for a league+season.
@@ -37,5 +32,6 @@
 - `scripts/audit_db.py` provides a non-invasive SQLite health report (counts + coverage + completeness metrics) to validate schema/cache/loader behavior as you ingest more data.
 - Fixtures ingestion is implemented end-to-end (raw save + cleaned transform + DB upsert for teams/fixtures + ingestion tracking).
 - Fixture lineups ingestion is implemented for a controlled subset of `fixture_id`s via `scripts/ingest_lineups.py` (raw save + transform + DB upsert for players/fixture_lineups + ingestion tracking), with cache-first behavior.
-- Standings, transfers ingestion into the database are not yet implemented.
+- Transfers ingestion into SQLite is implemented via `scripts/ingest_transfers.py` (`src/pl_ingestion/ingestion/transfers_ingestor.py` + `src/pl_ingestion/database/transfers_loader.py`).
+- Standings ingestion is not yet implemented.
 

@@ -4,13 +4,29 @@
 API-Football (api-football.com) via the v3 endpoint:
 `https://v3.football.api-sports.io`
 
-## Current Endpoint Used
+## Current Endpoints Used
 ### Fixtures
 - Endpoint: `GET /fixtures`
 - Query parameters (current ingestion):
   - `league` (Premier League league id)
   - `season` (season year used by the API)
   - optional `status` (fixture status filter)
+
+### Fixture lineups
+- Endpoint: `GET /fixtures/lineups`
+- Query parameters (current ingestion):
+  - `fixture` (fixture id)
+- Notes:
+  - used by `scripts/ingest_lineups.py` for controlled fixture subsets
+  - source for formation + lineup_type analytics
+
+### Transfers
+- Endpoint: `GET /transfers`
+- Query parameters (current ingestion):
+  - `team` (team id)
+- Notes:
+  - used by `scripts/ingest_transfers.py`
+  - ingestion loops over teams discovered in season fixtures
 
 ## Auth
 - API key is read from environment variable `API_FOOTBALL_API_KEY`

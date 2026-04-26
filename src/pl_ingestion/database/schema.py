@@ -77,6 +77,15 @@ def create_schema(engine: Engine) -> None:
         ]:
             _sqlite_add_column_if_missing(engine, "fixture_lineups", column_name, ddl)
 
+    # Transfers schema additions.
+    if "transfers" in inspector.get_table_names():
+        _sqlite_add_column_if_missing(
+            engine,
+            "transfers",
+            "transfer_date",
+            "ALTER TABLE transfers ADD COLUMN transfer_date TEXT",
+        )
+
     # Ensure unique constraint for run_key (required for deterministic upserts).
     # SQLite can’t add constraints via ALTER TABLE; create a unique index instead.
     indexes = {idx["name"] for idx in inspector.get_indexes("ingestion_runs")}

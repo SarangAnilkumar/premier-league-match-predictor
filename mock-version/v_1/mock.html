@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Premier League Transfer Market Intelligence - Mock v1</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <style>
+      :root {
+        --bg: #f6f7f9;
+        --card: #ffffff;
+        --text-dark: #1c2833;
+        --text-medium: #5d6d7e;
+        --sep: #f0f3f5;
+        --a1: #4e79a7;
+        --a2: #f28e2b;
+        --a3: #e15759;
+        --a4: #76b7b2;
+      }
+      * { box-sizing: border-box; border-radius: 0; }
+      body {
+        margin: 0;
+        font-family: "Open Sans", sans-serif;
+        font-size: 12px;
+        background: var(--bg);
+        color: var(--text-dark);
+      }
+      .dashboard-root {
+        min-width: 1100px;
+        min-height: 800px;
+        width: 100%;
+      }
+      .content-wrapper {
+        margin: 4px;
+        padding: 4px;
+        display: flex;
+        flex-direction: column;
+      }
+      .top-banner {
+        min-height: 52px;
+        display: flex;
+        align-items: center;
+        padding: 4px;
+        background: var(--bg);
+      }
+      .logo-area {
+        min-width: 195px;
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        font-weight: 700;
+        color: var(--a1);
+      }
+      .spacer { flex: 1; }
+      .update-info { color: var(--text-medium); font-size: 12px; }
+      .dashboard-title {
+        min-height: 70px;
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        background: var(--bg);
+        margin: 4px;
+        padding: 4px;
+      }
+      .subtitle {
+        margin-left: 10px;
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--text-medium);
+      }
+      .filter-bar {
+        min-height: 53px;
+        margin: 11px 4px;
+        padding: 4px;
+        background: var(--card);
+        display: flex;
+        align-items: center;
+      }
+      .filter-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-medium);
+        margin-right: 10px;
+      }
+      .filter-controls { display: flex; align-items: center; }
+      .filter-controls select {
+        margin-right: 8px;
+        min-width: 130px;
+        border: 1px solid #d9dde3;
+        padding: 4px 6px;
+        background: #fff;
+      }
+      .kpi-row {
+        min-height: 94px;
+        margin: 4px;
+        display: flex;
+      }
+      .kpi-card {
+        flex: 1;
+        margin-right: 16px;
+        background: var(--card);
+        border: none;
+      }
+      .kpi-card:last-child { margin-right: 0; }
+      .kpi-accent { height: 3px; }
+      .kpi-content { padding: 8px; }
+      .kpi-value { font-size: 24px; font-weight: 700; }
+      .kpi-name { color: var(--text-medium); margin-top: 4px; }
+      .chart-row {
+        margin: 11px 4px 0 4px;
+        display: flex;
+        min-height: 260px;
+      }
+      .chart-card {
+        background: var(--card);
+        padding: 8px;
+        border: none;
+        display: flex;
+        flex-direction: column;
+      }
+      .w70 { flex: 7; margin-right: 8px; }
+      .w30 { flex: 3; }
+      .w50 { flex: 1; }
+      .w50:first-child { margin-right: 8px; }
+      .chart-title {
+        min-height: 46px;
+        display: flex;
+        align-items: center;
+        margin: 4px;
+        color: var(--text-dark);
+        font-size: 15px;
+      }
+      .chart-subtitle {
+        margin: 0 10px 6px 10px;
+        color: var(--text-medium);
+        font-size: 11px;
+      }
+      .chart-icon {
+        width: 22px;
+        height: 22px;
+        margin-right: 8px;
+        color: var(--a1);
+        fill: currentColor;
+      }
+      .separator-line {
+        height: 3px;
+        margin: 0 10px;
+        background: var(--sep);
+      }
+      .sheet-zone {
+        padding: 8px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .chart-body {
+        position: relative;
+        min-height: 160px;
+        flex: 1;
+      }
+      .chart-body canvas { display: block; }
+      .table-wrap {
+        min-height: 180px;
+        overflow: auto;
+      }
+      table { width: 100%; border-collapse: collapse; }
+      th, td {
+        text-align: left;
+        padding: 6px;
+        border-bottom: 1px solid #ebedf0;
+        font-size: 12px;
+      }
+      th { color: var(--text-medium); font-weight: 700; }
+      .note {
+        margin: 8px 4px;
+        color: var(--text-medium);
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard-root">
+      <div class="content-wrapper">
+        <div class="top-banner">
+          <div class="logo-area">PL Transfer Intelligence</div>
+          <div class="spacer"></div>
+          <div class="update-info" id="updateInfo">Loading data...</div>
+        </div>
+
+        <div class="dashboard-title">
+          Premier League Transfer Market Intelligence
+          <span class="subtitle">Known-fee analytics + movement flow context</span>
+        </div>
+
+        <div class="filter-bar">
+          <span class="filter-label">Filters</span>
+          <div class="filter-controls">
+            <select id="seasonFilter"></select>
+            <select id="periodFilter"></select>
+            <select id="directionFilter"></select>
+            <select id="typeFilter"></select>
+          </div>
+          <div class="spacer"></div>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi-card"><div class="kpi-accent" style="background:#4e79a7"></div><div class="kpi-content"><div class="kpi-value" id="kpiTransfers">-</div><div class="kpi-name">Total Transfers</div></div></div>
+          <div class="kpi-card"><div class="kpi-accent" style="background:#f28e2b"></div><div class="kpi-content"><div class="kpi-value" id="kpiKnownFees">-</div><div class="kpi-name">Known Fee Transfers</div></div></div>
+          <div class="kpi-card"><div class="kpi-accent" style="background:#e15759"></div><div class="kpi-content"><div class="kpi-value" id="kpiTotalFees">-</div><div class="kpi-name">Total Known Fees</div></div></div>
+          <div class="kpi-card"><div class="kpi-accent" style="background:#76b7b2"></div><div class="kpi-content"><div class="kpi-value" id="kpiInternal">-</div><div class="kpi-name">Internal PL Share</div></div></div>
+        </div>
+
+        <div class="chart-row">
+          <div class="chart-card w70">
+            <div class="chart-title"><svg class="chart-icon" viewBox="0 0 24 24"><path d="M3 17h2V7H3v10zm8 0h2V3h-2v14zm8 0h2V11h-2v6z"/></svg>Transfer Timeline</div>
+            <div class="separator-line"></div>
+            <div class="sheet-zone"><div class="chart-body"><canvas id="timelineChart"></canvas></div></div>
+          </div>
+          <div class="chart-card w30">
+            <div class="chart-title"><svg class="chart-icon" viewBox="0 0 24 24"><path d="M11 2v20C5.9 21.5 2 17.3 2 12S5.9 2.5 11 2zm2 0c5.1.5 9 4.7 9 10s-3.9 9.5-9 10V2z"/></svg>Direction Breakdown</div>
+            <div class="separator-line"></div>
+            <div class="sheet-zone"><div class="chart-body"><canvas id="directionChart"></canvas></div></div>
+          </div>
+        </div>
+
+        <div class="chart-row">
+          <div class="chart-card w50">
+            <div class="chart-title"><svg class="chart-icon" viewBox="0 0 24 24"><path d="M3 19h18v2H3v-2zm2-2h3V8H5v9zm5 0h3V4h-3v13zm5 0h3v-6h-3v6z"/></svg>Net Spend by Club (Known Fees)</div>
+            <div class="separator-line"></div>
+            <div class="sheet-zone"><div class="chart-body"><canvas id="netSpendChart"></canvas></div></div>
+          </div>
+          <div class="chart-card w50">
+            <div class="chart-title"><svg class="chart-icon" viewBox="0 0 24 24"><path d="M3 3h18v4H3V3zm0 7h12v4H3v-4zm0 7h8v4H3v-4z"/></svg>Transfer Type Mix</div>
+            <div class="separator-line"></div>
+            <div class="sheet-zone"><div class="chart-body"><canvas id="typeChart"></canvas></div></div>
+          </div>
+        </div>
+
+        <div class="chart-row">
+          <div class="chart-card w50">
+            <div class="chart-title"><svg class="chart-icon" viewBox="0 0 24 24"><path d="M4 19h16v2H4v-2zm0-4h16v2H4v-2zm0-4h16v2H4v-2zm0-4h16v2H4V7z"/></svg>Top Deals</div>
+            <div class="separator-line"></div>
+            <div class="sheet-zone">
+              <div class="table-wrap"><table><thead><tr><th>Player</th><th>From</th><th>To</th><th>Date</th><th>Fee</th></tr></thead><tbody id="dealsBody"></tbody></table></div>
+            </div>
+          </div>
+          <div class="chart-card w50">
+            <div class="chart-title"><svg class="chart-icon" viewBox="0 0 24 24"><path d="M4 20h16v-2H4v2zM6 6h2v10H6V6zm5 3h2v7h-2V9zm5-5h2v12h-2V4z"/></svg>Club Activity Balance</div>
+            <div class="chart-subtitle">Incoming vs outgoing transfer count per PL club (bubble size = known fees)</div>
+            <div class="separator-line"></div>
+            <div class="sheet-zone"><div class="chart-body"><canvas id="paceChart"></canvas></div></div>
+          </div>
+        </div>
+
+        <div class="note">Illustrative HTML mock for Tableau planning. Interactions are representative, not Tableau-exact. Spend visuals use known fees only.</div>
+      </div>
+    </div>
+
+    <script>
+      const charts = {};
+      const palette = ["#4e79a7","#f28e2b","#e15759","#76b7b2","#59a14f"];
+
+      function parseCsv(text) {
+        const lines = text.trim().split(/\r?\n/);
+        const headers = lines[0].split(",");
+        const out = [];
+        for (let i = 1; i < lines.length; i += 1) {
+          const row = {};
+          const parts = [];
+          let cell = "";
+          let inQuotes = false;
+          const line = lines[i];
+          for (let j = 0; j < line.length; j += 1) {
+            const ch = line[j];
+            if (ch === "\"") { inQuotes = !inQuotes; continue; }
+            if (ch === "," && !inQuotes) { parts.push(cell); cell = ""; continue; }
+            cell += ch;
+          }
+          parts.push(cell);
+          headers.forEach((h, idx) => { row[h] = (parts[idx] || "").trim(); });
+          out.push(row);
+        }
+        return out;
+      }
+
+      function setSelectOptions(id, values, label) {
+        const el = document.getElementById(id);
+        while (el.firstChild) { el.removeChild(el.firstChild); }
+        const all = document.createElement("option");
+        all.value = "";
+        all.textContent = "All " + label;
+        el.appendChild(all);
+        values.forEach((v) => {
+          const opt = document.createElement("option");
+          opt.value = v;
+          opt.textContent = v;
+          el.appendChild(opt);
+        });
+      }
+
+      function compactEUR(n) {
+        if (!n || Number.isNaN(n)) return "€ 0";
+        if (n >= 1000000) return "€ " + (n / 1000000).toFixed(1).replace(".0", "") + "M";
+        if (n >= 1000) return "€ " + (n / 1000).toFixed(1).replace(".0", "") + "K";
+        return "€ " + Math.round(n);
+      }
+
+      function clubPerspective(row) {
+        if (row.movement_direction === "Incoming to PL" || row.movement_direction === "Internal PL") return row.to_team_name;
+        return row.from_team_name;
+      }
+
+      function applyFilters(rows) {
+        const season = document.getElementById("seasonFilter").value;
+        const period = document.getElementById("periodFilter").value;
+        const direction = document.getElementById("directionFilter").value;
+        const type = document.getElementById("typeFilter").value;
+        return rows.filter((r) => {
+          if (season && r.season !== season) return false;
+          if (period && r.transfer_period !== period) return false;
+          if (direction && r.movement_direction !== direction) return false;
+          if (type && r.transfer_type !== type) return false;
+          return true;
+        });
+      }
+
+      function buildAll(rows) {
+        const filtered = applyFilters(rows);
+        const known = filtered.filter((r) => r.fee_amount_numeric);
+        const totalFees = known.reduce((a, r) => a + Number(r.fee_amount_numeric || 0), 0);
+        const internal = filtered.filter((r) => r.movement_direction === "Internal PL").length;
+        const share = filtered.length ? (internal / filtered.length) * 100 : 0;
+
+        document.getElementById("kpiTransfers").textContent = filtered.length.toLocaleString();
+        document.getElementById("kpiKnownFees").textContent = known.length.toLocaleString();
+        document.getElementById("kpiTotalFees").textContent = compactEUR(totalFees);
+        document.getElementById("kpiInternal").textContent = share.toFixed(1) + "%";
+
+        const dateMap = new Map();
+        filtered.forEach((r) => { dateMap.set(r.transfer_date, (dateMap.get(r.transfer_date) || 0) + 1); });
+        const dateLabels = Array.from(dateMap.keys()).sort();
+        const dateVals = dateLabels.map((d) => dateMap.get(d));
+        charts.timeline.data.labels = dateLabels;
+        charts.timeline.data.datasets[0].data = dateVals;
+        charts.timeline.update();
+
+        const dirMap = new Map();
+        filtered.forEach((r) => { dirMap.set(r.movement_direction, (dirMap.get(r.movement_direction) || 0) + 1); });
+        const dLabels = Array.from(dirMap.keys());
+        charts.direction.data.labels = dLabels;
+        charts.direction.data.datasets[0].data = dLabels.map((x) => dirMap.get(x));
+        charts.direction.update();
+
+        const spendMap = new Map();
+        filtered.forEach((r) => {
+          const club = clubPerspective(r);
+          if (!club) return;
+          if (!spendMap.has(club)) spendMap.set(club, {in: 0, out: 0});
+          const fee = Number(r.fee_amount_numeric || 0);
+          if (r.movement_direction === "Incoming to PL" || r.movement_direction === "Internal PL") spendMap.get(club).in += fee;
+          if (r.movement_direction === "Outgoing from PL" || r.movement_direction === "Internal PL") spendMap.get(club).out += fee;
+        });
+        const spendRows = Array.from(spendMap.entries()).map(([club, v]) => ({club, net: v.in - v.out})).sort((a,b)=>b.net-a.net).slice(0, 12);
+        charts.net.data.labels = spendRows.map((x)=>x.club);
+        charts.net.data.datasets[0].data = spendRows.map((x)=>x.net/1000000);
+        charts.net.update();
+
+        const typeMap = new Map();
+        filtered.forEach((r) => { typeMap.set(r.transfer_type, (typeMap.get(r.transfer_type) || 0) + 1); });
+        const tLabels = Array.from(typeMap.keys());
+        charts.type.data.labels = tLabels;
+        charts.type.data.datasets[0].data = tLabels.map((x) => typeMap.get(x));
+        charts.type.update();
+
+        const body = document.getElementById("dealsBody");
+        while (body.firstChild) body.removeChild(body.firstChild);
+        known.sort((a,b)=>Number(b.fee_amount_numeric)-Number(a.fee_amount_numeric)).slice(0,15).forEach((r) => {
+          const tr = document.createElement("tr");
+          [r.player_name, r.from_team_name, r.to_team_name, r.transfer_date, r.fee_amount].forEach((v) => {
+            const td = document.createElement("td");
+            td.textContent = v || "";
+            tr.appendChild(td);
+          });
+          body.appendChild(tr);
+        });
+
+        const clubStats = new Map();
+        filtered.forEach((r) => {
+          const club = clubPerspective(r);
+          if (!club) return;
+          if (!clubStats.has(club)) clubStats.set(club, {incoming: 0, outgoing: 0, fees: 0});
+          const stat = clubStats.get(club);
+          if (r.movement_direction === "Incoming to PL" || r.movement_direction === "Internal PL") stat.incoming += 1;
+          if (r.movement_direction === "Outgoing from PL" || r.movement_direction === "Internal PL") stat.outgoing += 1;
+          stat.fees += Number(r.fee_amount_numeric || 0);
+        });
+        const bubbleData = Array.from(clubStats.entries())
+          .map(([club, s]) => ({x: s.outgoing, y: s.incoming, r: Math.max(4, Math.min(18, Math.sqrt(s.fees / 2000000))), club: club, fees: s.fees}))
+          .sort((a, b) => b.fees - a.fees)
+          .slice(0, 20);
+        charts.pace.data.datasets[0].data = bubbleData;
+        charts.pace.update();
+      }
+
+      function buildCharts() {
+        charts.timeline = new Chart(document.getElementById("timelineChart"), {
+          type: "line",
+          data: {labels: [], datasets: [{label: "Transfers", data: [], borderColor: palette[0], backgroundColor: "rgba(78,121,167,0.15)", fill: true, tension: 0.2}]},
+          options: {responsive: true, maintainAspectRatio: false, plugins: {legend: {display: false}}}
+        });
+        charts.direction = new Chart(document.getElementById("directionChart"), {
+          type: "doughnut",
+          data: {labels: [], datasets: [{data: [], backgroundColor: [palette[0], palette[1], palette[3]]}]},
+          options: {responsive: true, maintainAspectRatio: false}
+        });
+        charts.net = new Chart(document.getElementById("netSpendChart"), {
+          type: "bar",
+          data: {labels: [], datasets: [{label: "Net Spend (€M)", data: [], backgroundColor: palette[2]}]},
+          options: {indexAxis: "y", responsive: true, maintainAspectRatio: false}
+        });
+        charts.type = new Chart(document.getElementById("typeChart"), {
+          type: "bar",
+          data: {labels: [], datasets: [{label: "Transfer Count", data: [], backgroundColor: [palette[0], palette[1], palette[2], palette[3], palette[4]]}]},
+          options: {responsive: true, maintainAspectRatio: false}
+        });
+        charts.pace = new Chart(document.getElementById("paceChart"), {
+          type: "bubble",
+          data: {
+            datasets: [
+              {
+                label: "Clubs",
+                data: [],
+                backgroundColor: "rgba(78,121,167,0.5)",
+                borderColor: palette[0]
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {title: {display: true, text: "Outgoing transfers"}},
+              y: {title: {display: true, text: "Incoming transfers"}}
+            },
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  title: (items) => items[0].raw.club,
+                  label: (ctx) => {
+                    const r = ctx.raw;
+                    return "In: " + r.y.toLocaleString() + " | Out: " + r.x.toLocaleString() + " | Known fees: " + compactEUR(r.fees);
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      function unique(rows, key) {
+        return Array.from(new Set(rows.map((r) => r[key]).filter(Boolean))).sort();
+      }
+
+      async function init() {
+        const csvPath = "../../data/processed/tableau_transfers_flat.csv";
+        const text = await fetch(csvPath).then((r) => r.text());
+        const rows = parseCsv(text);
+
+        setSelectOptions("seasonFilter", unique(rows, "season"), "Seasons");
+        setSelectOptions("periodFilter", unique(rows, "transfer_period"), "Periods");
+        setSelectOptions("directionFilter", unique(rows, "movement_direction"), "Directions");
+        setSelectOptions("typeFilter", unique(rows, "transfer_type"), "Types");
+
+        buildCharts();
+        ["seasonFilter","periodFilter","directionFilter","typeFilter"].forEach((id) => {
+          document.getElementById(id).addEventListener("change", () => buildAll(rows));
+        });
+
+        const updateText = "Updated from transfer export: " + new Date().toLocaleString();
+        document.getElementById("updateInfo").textContent = updateText;
+        buildAll(rows);
+      }
+
+      init();
+    </script>
+  </body>
+</html>

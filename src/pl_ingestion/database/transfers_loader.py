@@ -149,6 +149,7 @@ def load_transfers_to_db(
                 continue
             key = (
                 row.get("season"),
+                row.get("transfer_date"),
                 row.get("player_id"),
                 row.get("from_team_id"),
                 row.get("to_team_id"),
@@ -184,6 +185,7 @@ def load_transfers_to_db(
                     {
                         "season": r.get("season"),
                         "transfer_period": r.get("transfer_period"),
+                        "transfer_date": r.get("transfer_date"),
                         "player_id": r.get("player_id"),
                         "from_team_id": r.get("from_team_id"),
                         "to_team_id": r.get("to_team_id"),

@@ -11,7 +11,7 @@ Implemented:
 - Transfers ingestion (`GET /transfers`) for league teams in a target season
 - Schema-managed SQLite warehouse with ingestion run tracking
 - Formation analytics read models (JSON outputs)
-- Transfer dashboard export (`tableau_transfers_flat.csv`)
+- Transfer dashboard export (`transfers_flat.csv`)
 
 Not implemented:
 
@@ -21,33 +21,36 @@ Not implemented:
 
 ## Architecture
 
+See the interactive diagram: [`docs/architecture-diagram.html`](docs/architecture-diagram.html).
+
 ```text
 API-Football
   -> scripts/ingest_*.py
-    -> src/pl_ingestion/api_football_client.py
-    -> src/pl_ingestion/ingestion/*
-    -> src/pl_ingestion/transform/*
-    -> src/pl_ingestion/database/*
-      -> SQLite (data/pl_ingestion.sqlite)
+    -> src/premier_league/clients/api_football.py
+    -> src/premier_league/ingestion/*
+    -> src/premier_league/transform/*
+    -> src/premier_league/database/*
+      -> SQLite (data/premier_league.sqlite)
       -> ingestion_runs
 
 SQLite
-  -> scripts/build_formation_analytics.py
-    -> data/processed/api_football/*.json
+  -> scripts/export_formation_read_models.py
+    -> data/processed/read_models/formations/*.json
 
 SQLite
-  -> scripts/export_tableau_transfers_csv.py
-    -> data/processed/tableau_transfers_flat.csv
+  -> scripts/export_transfers_csv.py
+    -> data/exports/transfers_flat.csv
 ```
 
 Key modules:
 
-- `src/pl_ingestion/config.py`
-- `src/pl_ingestion/api_football_client.py`
-- `src/pl_ingestion/ingestion/`
-- `src/pl_ingestion/transform/`
-- `src/pl_ingestion/database/`
-- `src/pl_ingestion/analytics/formation_aggregator.py`
+- `src/premier_league/config.py`
+- `src/premier_league/clients/api_football.py`
+- `src/premier_league/ingestion/`
+- `src/premier_league/transform/`
+- `src/premier_league/database/`
+- `src/premier_league/analytics/formations.py`
+- `src/premier_league/paths.py`
 - `scripts/`
 
 ## Pipeline Run Order
@@ -64,7 +67,7 @@ Set `API_FOOTBALL_API_KEY` in `.env`.
 
 ```bash
 # 2) initialize schema
-python3 scripts/init_db.py
+python3 scripts/db_init.py
 
 # 3) ingest fixtures (season)
 python3 scripts/ingest_fixtures.py --season 2024
@@ -76,13 +79,13 @@ python3 scripts/ingest_lineups.py --season 2024 --first-n 20 --batch-size 5
 python3 scripts/ingest_transfers.py --season 2024 --sleep-seconds-between-requests 0.5
 
 # 6) build formation read models
-python3 scripts/build_formation_analytics.py
+python3 scripts/export_formation_read_models.py
 
 # 7) export transfer dashboard flat file
-python3 scripts/export_tableau_transfers_csv.py
+python3 scripts/export_transfers_csv.py
 
 # 8) audit health
-python3 scripts/audit_db.py
+python3 scripts/db_audit.py
 ```
 
 ## Data Contracts (Generated Locally)
@@ -95,16 +98,16 @@ Raw API payloads:
 
 Processed/read-model outputs:
 
-- `data/processed/api_football/fixtures_cleaned.json`
-- `data/processed/api_football/starting_formations.json`
-- `data/processed/api_football/formation_usage_full.json`
-- `data/processed/api_football/formation_usage_primary.json`
-- `data/processed/api_football/formation_usage_summary.json`
-- `data/processed/api_football/fixture_formations.json`
-- `data/processed/api_football/fixture_formations_primary.json`
-- `data/processed/api_football/formation_matchups.json`
-- `data/processed/api_football/formation_matchup_summary.json`
-- `data/processed/tableau_transfers_flat.csv`
+- `data/processed/api_football/fixtures_normalized.json`
+- `data/processed/read_models/formations/starting_formations.json`
+- `data/processed/read_models/formations/formation_usage_full.json`
+- `data/processed/read_models/formations/formation_usage_primary.json`
+- `data/processed/read_models/formations/formation_usage_summary.json`
+- `data/processed/read_models/formations/fixture_formations.json`
+- `data/processed/read_models/formations/fixture_formations_primary.json`
+- `data/processed/read_models/formations/formation_matchups.json`
+- `data/processed/read_models/formations/formation_matchup_summary.json`
+- `data/exports/transfers_flat.csv`
 
 Note: `data/` outputs are generated locally and not expected to be fully tracked in git.
 

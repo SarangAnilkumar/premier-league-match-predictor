@@ -13,12 +13,12 @@ from dotenv import load_dotenv
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from pl_ingestion.api_football_client import APIFootballClient
-from pl_ingestion.config import Settings
-from pl_ingestion.ingestion.fixtures_ingestor import FixturesIngestor
-from pl_ingestion.database.db_config import DatabaseSettings
-from pl_ingestion.database.connection import create_db_engine, make_session_factory
-from pl_ingestion.database.schema import create_schema
+from premier_league.clients.api_football import APIFootballClient
+from premier_league.config import Settings
+from premier_league.ingestion.fixtures import FixturesIngestor
+from premier_league.database.settings import DatabaseSettings
+from premier_league.database.connection import create_db_engine, make_session_factory
+from premier_league.database.schema import create_schema
 
 
 def setup_logging(level: str) -> None:
